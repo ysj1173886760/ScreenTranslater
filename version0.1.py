@@ -10,6 +10,7 @@ import urllib
 import requests
 import http.client
 import json
+from PIL import Image
 
 class GUI:
     def __init__(self) -> None:
@@ -52,6 +53,7 @@ class GUI:
         self.screenWidth = window.winfo_screenwidth()
         self.screenHeight = window.winfo_screenheight()
         self.tmp_img = 'tmp.png'
+        window.bind('<Control-Alt-c>', self.get_img_from_clipboard)
 
     def create_canvas(self):
         im = ImageGrab.grab()
@@ -94,12 +96,7 @@ class GUI:
         pic.save(self.capture_img)
         self.top.destroy()
 
-    def capture_cmd(self):
-        window.iconify()
-        window.withdraw()
-        self.create_canvas()
-        self.capture_btn.wait_window(self.top)
-        os.remove(self.tmp_img)
+    def set_text(self):
         self.ocr_text = self.baidu_ocr(self.capture_img)
         if (self.ocr_text):
             self.text_box.delete(1.0, tk.END)
@@ -107,6 +104,22 @@ class GUI:
             self.text_box.insert(1.0, self.ocr_text)
             window.deiconify()
             os.remove(self.capture_img)
+
+    def get_img_from_clipboard(self, event):
+        cb = QApplication.clipboard()
+        if cb.mimeData().hashImage():
+            qt_image = cb.image()
+            image = Image.fromqimage(qt_image)
+            image.save(self.capture_img)
+            self.set_text()
+
+    def capture_cmd(self):
+        window.iconify()
+        window.withdraw()
+        self.create_canvas()
+        self.capture_btn.wait_window(self.top)
+        os.remove(self.tmp_img)
+        self.set_text()
     
     def baidu_ocr(self, file):
         app_id = '19890128'
@@ -152,8 +165,10 @@ class GUI:
             response = http_client.getresponse()
             json_response = response.read().decode('utf-8')
             js = json.loads(json_response)
-            dst = str(js["trans_result"][0]["dst"])
-            return dst
+            res = ''
+            for result in js['trans_result']:
+                res += result['dst'] + '\n'
+            return res
         except Exception as e:
             print(e)
             return None
