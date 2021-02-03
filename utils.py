@@ -5,6 +5,7 @@ import hashlib
 import json
 import random
 import urllib
+import re
 
 def baidu_ocr(file):
     app_id = '19890128'
@@ -19,7 +20,7 @@ def baidu_ocr(file):
         print(words)
         if words is not None and len(words):
             for word in words:
-                ocr_text += word['words'] + '\n'
+                ocr_text += word['words'] + ' '
             return ocr_text
     return None
 
@@ -53,3 +54,8 @@ def baidu_translate(content):
     finally:
         if http_client:
             http_client.close()
+
+def paper_format(content):
+    """ remove all "- " formatted string """
+    content = re.sub('-\s', '', content)
+    return content

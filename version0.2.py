@@ -13,15 +13,20 @@ class GUI(QMainWindow, my_ui.Ui_MainWindow):
         self.pushButton_2.clicked.connect(self.translate_cmd)
         self.pushButton_3.clicked.connect(self.get_from_clipboard_cmd)
 
+    def set_text(self):
+        result = utils.baidu_ocr('tmp.png')
+        if result:
+            if self.checkBox.isChecked():
+                result = utils.paper_format(result)
+            self.textEdit.setText(result)
+
     def get_from_clipboard_cmd(self):
         cb = QApplication.clipboard()
         if cb.mimeData().hasImage():
             qt_img = cb.image()
             pil_img = Image.fromqimage(qt_img)
             pil_img.save('tmp.png')
-            result = utils.baidu_ocr('tmp.png')
-            if result:
-                self.textEdit.setText(result)
+            self.set_text()
             os.remove('tmp.png')
 
     def translate_cmd(self):
